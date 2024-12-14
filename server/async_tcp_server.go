@@ -64,10 +64,11 @@ func (tcpServer *AsyncTCPServer) RunServer() error {
 	}
 
 	for {
+		core.ScanAndDeleteExpiredKeys()
 		// Blocking call: Waiting until any file descriptor is ready for an I/O
 		nevents, err := syscall.EpollWait(epfd, events[:], -1)
 		if err != nil {
-			log.Print("epoll_wait: ", err)
+			log.Println("epoll_wait: ", err)
 			continue
 		}
 
@@ -80,7 +81,7 @@ func (tcpServer *AsyncTCPServer) RunServer() error {
 
 				fd, _, err := syscall.Accept(serverFd)
 				if err != nil {
-					log.Print(err)
+					log.Println(err)
 					continue
 				}
 
@@ -138,6 +139,6 @@ func (tcpServer *AsyncTCPServer) RunServer() error {
 
 func closeConnection(fd int) {
 	if err := syscall.Close(fd); err != nil {
-		log.Print(err)
+		log.Println(err)
 	}
 }

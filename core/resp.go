@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var RESP_NIL []byte = []byte("$-1\r\n")
+
 type Resp struct {
 	data []byte
 	pos  int
@@ -128,7 +130,9 @@ func Encode(data interface{}, isSimpleString bool) ([]byte, error) {
 		} else {
 			return []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(d), d)), nil
 		}
+	case int, int8, int16, int32, int64:
+		return []byte(fmt.Sprintf(":%d\r\n", data)), nil
 	default:
-		return nil, errors.New("invalid data type")
+		return RESP_NIL, nil
 	}
 }
