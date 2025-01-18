@@ -107,18 +107,18 @@ func (tcpServer *AsyncTCPServer) RunServer() error {
 
 				var clientServerFd int = int(events[i].Fd)
 				buff := make([]byte, 512)
-				var cmd *core.Cmd
+				var cmds core.Cmds
 				var err error
 				var response []byte
 
 				n, err := syscall.Read(clientServerFd, buff)
 
 				if err == nil {
-					cmd, err = readCommand(buff, n)
+					cmds, err = readCommands(buff, n)
 				}
 
 				if err == nil {
-					response, err = core.Evaluate(cmd)
+					response, err = core.Evaluate(cmds)
 				}
 
 				if err == nil {

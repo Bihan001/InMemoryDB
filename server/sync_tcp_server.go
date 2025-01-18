@@ -36,16 +36,16 @@ func (tcpServer *SyncTCPServer) RunServer() error {
 
 		for {
 			buff := make([]byte, 512)
-			var cmd *core.Cmd
+			var cmds core.Cmds
 			var response []byte
 
 			n, err := connection.Read(buff)
 			if err == nil {
-				cmd, err = readCommand(buff, n)
+				cmds, err = readCommands(buff, n)
 			}
 
 			if err == nil {
-				response, err = core.Evaluate(cmd)
+				response, err = core.Evaluate(cmds)
 			}
 
 			if err == nil {

@@ -26,3 +26,5 @@ go.work.sum
 
 # My directories and files
 .redis-data
+
+*.wal

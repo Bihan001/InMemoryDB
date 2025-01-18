@@ -1,38 +1,54 @@
 package core
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/Bihan001/MyDB/config"
 )
 
-func Evaluate(cmd *Cmd) ([]byte, error) {
-	var response []byte
-	var err error
+func Evaluate(cmds Cmds) ([]byte, error) {
+	buff := bytes.NewBuffer(make([]byte, 0))
 
-	switch cmd.Cmd {
-	case "PING":
-		response, err = evaluatePing(cmd.Args)
-	case "GET":
-		response, err = evaluateGet(cmd.Args)
-	case "SET":
-		response, err = evaluateSet(cmd.Args)
-	case "DEL":
-		response, err = evaluateDelete(cmd.Args)
-	case "TTL":
-		response, err = evaluateTTL(cmd.Args)
-	case "EXPIRE":
-		response, err = evaluateExpire(cmd.Args)
-	default:
-		err = errors.New("invalid command")
+	for _, cmd := range cmds {
+		var response []byte
+		var err error
+
+		switch cmd.Cmd {
+		case "PING":
+			response, err = evaluatePing(cmd.Args)
+		case "GET":
+			response, err = evaluateGet(cmd.Args)
+		case "SET":
+			response, err = evaluateSet(cmd.Args)
+		case "DEL":
+			response, err = evaluateDelete(cmd.Args)
+		case "TTL":
+			response, err = evaluateTTL(cmd.Args)
+		case "EXPIRE":
+			response, err = evaluateExpire(cmd.Args)
+		default:
+			err = errors.New("invalid command")
+		}
+	
+		if err != nil {
+			response, err = Encode(fmt.Sprint(err), false)
+		}
+
+		if err == nil {
+			buff.Write(response)
+		}
+
+		if err != nil {
+			return make([]byte, 0), err
+		}
+
 	}
-
-	if err != nil {
-		response, err = Encode(fmt.Sprint(err), false)
-	}
-
-	return response, err
+	
+	return buff.Bytes(), nil
 }
 
 func evaluatePing(args []string) ([]byte, error) {
@@ -64,6 +80,10 @@ func evaluateGet(args []string) ([]byte, error) {
 func evaluateSet(args []string) ([]byte, error) {
 	if len(args) < 2 {
 		return nil, errors.New("(error) ERR wrong number of arguments for 'set' command")
+	}
+
+	if (store.Length() >= config.MaxKeyLimit) {
+		evict()
 	}
 
 	key, value := args[0], args[1]

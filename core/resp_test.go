@@ -13,7 +13,8 @@ func TestSimpleStringDecode(t *testing.T) {
 	}
 	for k, v := range cases {
 		resp := core.GetNewResp([]byte(k))
-		value, err := resp.Decode()
+		values, err := resp.Decode()
+		value := values[0]
 		if v != value {
 			fmt.Println(value, err)
 			t.Fail()
@@ -27,7 +28,8 @@ func TestError(t *testing.T) {
 	}
 	for k, v := range cases {
 		resp := core.GetNewResp([]byte(k))
-		value, err := resp.Decode()
+		values, err := resp.Decode()
+		value := values[0]
 		if v != value {
 			fmt.Println(value, err)
 			t.Fail()
@@ -42,7 +44,8 @@ func TestInt64(t *testing.T) {
 	}
 	for k, v := range cases {
 		resp := core.GetNewResp([]byte(k))
-		value, err := resp.Decode()
+		values, err := resp.Decode()
+		value := values[0]
 		if v != value {
 			fmt.Println(value, err)
 			t.Fail()
@@ -57,7 +60,8 @@ func TestBulkStringDecode(t *testing.T) {
 	}
 	for k, v := range cases {
 		resp := core.GetNewResp([]byte(k))
-		value, err := resp.Decode()
+		values, err := resp.Decode()
+		value := values[0]
 		if v != value {
 			fmt.Println(value, err)
 			t.Fail()
@@ -75,7 +79,8 @@ func TestArrayDecode(t *testing.T) {
 	}
 	for k, v := range cases {
 		resp := core.GetNewResp([]byte(k))
-		value, _ := resp.Decode()
+		values, _ := resp.Decode()
+		value := values[0]
 		array := value.([]interface{})
 		if len(array) != len(v) {
 			t.Fail()

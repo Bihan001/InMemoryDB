@@ -16,25 +16,22 @@ func GetNewResp(data []byte) Resp {
 	return Resp{data: data, pos: 0}
 }
 
-func (resp *Resp) DecodeArrayString() ([]string, error) {
-	res, err := resp.Decode()
-	if err != nil {
-		return nil, err
-	}
-	tmp := res.([]interface{})
-	tokens := make([]string, len(tmp))
-	for i := range tokens {
-		tokens[i] = tmp[i].(string)
-	}
-	return tokens, nil
-}
-
-func (resp *Resp) Decode() (interface{}, error) {
+func (resp *Resp) Decode() ([]interface{}, error) {
 	if len(resp.data) == 0 {
 		return nil, errors.New("no data")
 	}
-	value, err := resp.decodeOne()
-	return value, err
+
+	values := make([]interface{}, 0)
+
+	for resp.pos < len(resp.data) {
+		value, err := resp.decodeOne()
+		if err != nil {
+			return values, err
+		}
+		values = append(values, value)
+	}
+
+	return values, nil
 }
 
 func (resp *Resp) decodeOne() (interface{}, error) {

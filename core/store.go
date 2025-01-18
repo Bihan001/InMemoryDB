@@ -58,3 +58,17 @@ func (s *Store) Delete(k string) bool {
 	}
 	return false
 }
+
+func (s *Store) Keys() []string {
+	keys := make([]string, len(s.store))
+	i := 0
+	for k := range s.store {
+		keys[i] = k
+		i++
+	}
+	return keys
+}
+
+func (s *Store) Length() int {
+	return len(s.store)
+}
