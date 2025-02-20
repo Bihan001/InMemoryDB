@@ -1,6 +1,10 @@
 package core
 
-import "time"
+import (
+	"time"
+
+	"github.com/Bihan001/MyDB/config"
+)
 
 type Store struct {
 	store map[string]*Value
@@ -9,7 +13,14 @@ type Store struct {
 type Value struct {
 	value interface{}
 	expiresAt int64
+	typeEncoding uint8
 }
+
+var OBJECT_TYPE_STRING uint8 = 0
+
+var OBJ_ENCODING_INT uint8 = 1
+var OBJ_ENCODING_RAW uint8 = 0
+var OBJ_ENCODING_EMBEDDED_STR uint8 = 8
 
 var store *Store
 
@@ -21,7 +32,7 @@ func init() {
 	}
 }
 
-func (s *Store) NewValue(value interface{}, expiryDurationMs int64) *Value {
+func (s *Store) NewValue(value interface{}, expiryDurationMs int64, objectType uint8, objectEncoding uint8) *Value {
 	var expiresAt int64 = -1
 
 	if expiryDurationMs > 0 {
@@ -31,11 +42,19 @@ func (s *Store) NewValue(value interface{}, expiryDurationMs int64) *Value {
 	return &Value{
 		value: value,
 		expiresAt: expiresAt,
+		typeEncoding: objectType|objectEncoding,
 	}
 }
 
 func (s *Store) Put(k string, v *Value) {
+	if len(s.store) >= config.MaxKeyLimit {
+		evict()
+	}
 	s.store[k] = v
+	if KeyspaceStat[0] == nil {
+		KeyspaceStat[0] = make(map[string]int)
+	}
+	KeyspaceStat[0]["keys"]++
 }
 
 func (s *Store) Get(k string) *Value {
@@ -43,7 +62,7 @@ func (s *Store) Get(k string) *Value {
 
 	if v != nil {
 		if v.expiresAt != -1 && v.expiresAt <= time.Now().UnixMilli() {
-			delete(s.store, k)
+			s.Delete(k)
 			return nil
 		}
 		return v
@@ -54,6 +73,7 @@ func (s *Store) Get(k string) *Value {
 func (s *Store) Delete(k string) bool {
 	if _, ok := s.store[k]; ok {
 		delete(s.store, k)
+		KeyspaceStat[0]["keys"]--
 		return true
 	}
 	return false

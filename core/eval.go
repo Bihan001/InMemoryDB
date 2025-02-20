@@ -30,6 +30,14 @@ func Evaluate(cmds Cmds) ([]byte, error) {
 			response, err = evaluateTTL(cmd.Args)
 		case "EXPIRE":
 			response, err = evaluateExpire(cmd.Args)
+		case "INCR":
+			response, err = evaluateINCR(cmd.Args)
+		case "INFO":
+			response, err = evaluateINFO(cmd.Args)
+		case "CLIENT":
+			response, err = evaluateCLIENT(cmd.Args)
+		case "LATENCY":
+			response, err = evaluateLATENCY(cmd.Args)
 		default:
 			err = errors.New("invalid command")
 		}
@@ -87,6 +95,8 @@ func evaluateSet(args []string) ([]byte, error) {
 	}
 
 	key, value := args[0], args[1]
+	objectType, objectEncoding := tryObjectEncoding(value)
+
 	var expiryDurationMs int64 = -1
 
 	for i := 2; i < len(args); i++ {
@@ -106,7 +116,7 @@ func evaluateSet(args []string) ([]byte, error) {
 		}
 	}
 
-	store.Put(key, store.NewValue(value, expiryDurationMs))
+	store.Put(key, store.NewValue(value, expiryDurationMs, objectType, objectEncoding))
 	return Encode("OK", true)
 }
 
@@ -163,4 +173,51 @@ func evaluateExpire(args []string) ([]byte, error) {
 	value.expiresAt = time.Now().UnixMilli() + expiryDurationSec * 1000;
 
 	return Encode(1, false)
+}
+
+func evaluateINCR(args []string) ([]byte, error) {
+	if len(args) != 1 {
+		return Encode(errors.New("ERR wrong number of arguments for 'incr' command"), false)
+	}
+	
+	var key string = args[0]
+	obj := store.Get(key)
+	
+	if obj == nil {
+		obj = store.NewValue("0", -1, OBJECT_TYPE_STRING, OBJ_ENCODING_INT)
+		store.Put(key, obj)
+	}
+	
+	if err := assertType(obj.typeEncoding, OBJECT_TYPE_STRING); err != nil {
+		return Encode(err, false)
+	}
+	
+	if err := assertEncoding(obj.typeEncoding, OBJ_ENCODING_INT); err != nil {
+		return Encode(err, false)
+	}
+	
+	i, _ := strconv.ParseInt(obj.value.(string), 10, 64)
+	i++
+	
+	obj.value = strconv.FormatInt(i, 10)
+
+	return Encode(i, false)
+}
+
+func evaluateINFO(args []string) ([]byte, error) {
+	var info []byte
+	buf := bytes.NewBuffer(info)
+	buf.WriteString("# Keyspace\r\n")
+	for i := range KeyspaceStat {
+		buf.WriteString(fmt.Sprintf("db%d:keys=%d,expires=0,avg_ttl=0\r\n", i, KeyspaceStat[i]["keys"]))
+	}
+	return Encode(buf.String(), false)
+}
+
+func evaluateCLIENT(args []string) ([]byte, error) {
+	return Encode("OK", true)
+}
+
+func evaluateLATENCY(args []string) ([]byte, error) {
+	return Encode([]string{}, false)
 }

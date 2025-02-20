@@ -30,7 +30,7 @@ func scanAndDeleteKeys() float32 {
 		}
 		sampleSize--
 		if v.expiresAt <= time.Now().UnixMilli() {
-			delete(store.store, k)
+			store.Delete(k)
 			expiredCount++
 		}
 		if sampleSize == 0 {

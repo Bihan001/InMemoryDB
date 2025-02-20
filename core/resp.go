@@ -6,6 +6,7 @@ import (
 )
 
 var RESP_NIL []byte = []byte("$-1\r\n")
+var RESP_OK []byte = []byte("+OK\r\n")
 
 type Resp struct {
 	data []byte
