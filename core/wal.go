@@ -7,40 +7,54 @@ import (
 	"github.com/Bihan001/MyDB/config"
 )
 
-var walFile *os.File
-
-func init() {
-	var err error
-	walFile, err = os.OpenFile(config.WALFilePath, os.O_CREATE|os.O_RDWR, 0600)
-	if err != nil {
-		log.Fatal("error while opening WAL file: ", err)
-	}
+type WAL interface {
+    WriteToWAL(input []byte)
+    ReadWALFile() []byte
 }
 
-func WriteOperationInWAL(input []byte) {
-	// The input slice has a hardcoded size.
-	// If the actual string is smaller, the rest of the characters are null terminators which break the WAL
-	inputLength := getNullTerminatorIndex(input)
-	data := input[:inputLength]
-	_, err := walFile.Write(data)
-	if err != nil {
-		log.Fatal("error while writing WAL: ", err)
-	}
+type fileWAL struct {
+    fileHandle *os.File
+    filePath   string
 }
 
-func ReadWAL() []byte {
-	bytes, err := os.ReadFile(config.WALFilePath)
-	if err != nil {
-		log.Fatal("error while reading WAL file: ", err)
-	}
-	return bytes
+var defaultWAL WAL = func() WAL {
+    handle, err := os.OpenFile(config.LogFilePath, os.O_CREATE|os.O_RDWR, 0600)
+    if err != nil {
+        log.Fatal("error while opening WAL file: ", err)
+    }
+    return &fileWAL{
+        fileHandle: handle,
+        filePath:   config.LogFilePath,
+    }
+}()
+
+func GetWAL() WAL {
+    return defaultWAL
 }
 
-func getNullTerminatorIndex(data []byte) int {
-	for i := 0; i < len(data); i++ {
-		if data[i] == 0 {
-			return i
-		}
-	}
-	return len(data)
+func (fw *fileWAL) WriteToWAL(input []byte) {
+    size := fw.indexOfNullTerminator(input)
+    data := input[:size]
+    _, err := fw.fileHandle.Write(data)
+    if err != nil {
+        log.Fatal("error while writing WAL: ", err)
+    }
 }
+
+func (fw *fileWAL) ReadWALFile() []byte {
+    bytes, err := os.ReadFile(fw.filePath)
+    if err != nil {
+        log.Fatal("error while reading WAL file: ", err)
+    }
+    return bytes
+}
+
+func (fw *fileWAL) indexOfNullTerminator(data []byte) int {
+    for i := 0; i < len(data); i++ {
+        if data[i] == 0 {
+            return i
+        }
+    }
+    return len(data)
+}
+

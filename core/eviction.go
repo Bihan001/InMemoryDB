@@ -1,30 +1,27 @@
 package core
 
-import "github.com/Bihan001/MyDB/config"
+import (
+	"github.com/Bihan001/MyDB/config"
+	"github.com/Bihan001/MyDB/core/store"
+)
 
-func evict() {
-	switch config.EvictionStrategy {
-	case config.EVICT_SIMPLE_FIRST:
-		evictFirst()
-	case config.EVICT_ALL_KEYS_RANDOM:
-		evictAllkeysRandom()
-	}
+type EvictionManager interface {
+    Evict(st store.DataStore)
 }
 
-func evictFirst() {
-	for key := range store.store {
-		store.Delete(key)
-		return
-	}
+type defaultEvictionManager struct {}
+
+func GetNewEvictionManager() EvictionManager {
+    return &defaultEvictionManager{}
 }
 
-func evictAllkeysRandom() {
-	evictCount := int64(config.EvictionRatio * float64(config.MaxKeyLimit))
-	for k := range store.store {
-		store.Delete(k)
-		evictCount--
-		if evictCount <= 0 {
-			break
-		}
-	}
+func (eo *defaultEvictionManager) Evict(st store.DataStore) {
+    switch config.EvictionMethod {
+    case config.ORDERED_EVICTION:
+        pol := &OrderedEvictionPolicy{}
+        pol.Evict(st)
+    case config.RANDOM_EVICTION:
+        pol := &RandomEvictionPolicy{}
+        pol.Evict(st)
+    }
 }
