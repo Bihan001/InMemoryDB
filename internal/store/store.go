@@ -1,9 +1,9 @@
 package store
 
 import (
-	"time"
+    "time"
 
-	"github.com/Bihan001/MyDB/core/stats"
+    "github.com/Bihan001/MyDB/internal/stats"
 )
 
 type DataStore interface {
@@ -16,8 +16,8 @@ type DataStore interface {
 }
 
 type memoryStore struct {
-    data map[string]*DataEntry
-	statsManager stats.StatsManager
+    data         map[string]*DataEntry
+    statsManager stats.StatsManager
 }
 
 type DataEntry struct {
@@ -29,7 +29,7 @@ type DataEntry struct {
 func GetNewStore(statsManager stats.StatsManager) DataStore {
     return &memoryStore{
         data: make(map[string]*DataEntry),
-		statsManager: statsManager,
+        statsManager: statsManager,
     }
 }
 
@@ -102,4 +102,3 @@ func (ms *memoryStore) AllKeys() []string {
 func (ms *memoryStore) Size() int {
     return len(ms.data)
 }
-

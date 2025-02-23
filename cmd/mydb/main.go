@@ -1,11 +1,11 @@
 package main
 
 import (
-	"flag"
+    "flag"
 
-	"github.com/Bihan001/MyDB/config"
-	"github.com/Bihan001/MyDB/core"
-	"github.com/Bihan001/MyDB/server"
+    "github.com/Bihan001/MyDB/internal/config"
+    "github.com/Bihan001/MyDB/internal/engine"
+    "github.com/Bihan001/MyDB/internal/server"
 )
 
 func setupFlags() {
@@ -17,9 +17,6 @@ func setupFlags() {
 
 func main() {
     setupFlags()
-
-    var evaluator core.Evaluator = core.GetNewEvaluator(core.GetDefaultContext())
-    var runner server.ServiceRunner = server.NewAsyncService(core.GetDefaultContext(), evaluator)
-    
+    var runner server.ServiceRunner = server.NewAsyncService(engine.GetDefaultContext())
     runner.RunService()
 }

@@ -1,8 +1,8 @@
 package ioprotocol
 
 import (
-	"errors"
-	"fmt"
+    "errors"
+    "fmt"
 )
 
 type respEncoder struct {

@@ -1,8 +1,8 @@
-package core
+package engine
 
 import (
-	"github.com/Bihan001/MyDB/config"
-	"github.com/Bihan001/MyDB/core/store"
+    "github.com/Bihan001/MyDB/internal/config"
+    "github.com/Bihan001/MyDB/internal/store"
 )
 
 type EvictionManager interface {

@@ -1,10 +1,8 @@
-package core
+package engine
 
 import (
 	"log"
 	"time"
-
-	"github.com/Bihan001/MyDB/core/store"
 )
 
 type ExpiryManager interface {
@@ -13,13 +11,13 @@ type ExpiryManager interface {
 
 type defaultExpiryManager struct {
     sampleSize int
-    store      store.DataStore
+    context    *Context
 }
 
-func GetNewExpiryManager(st store.DataStore) ExpiryManager {
+func GetNewExpiryManager(context *Context) ExpiryManager {
     return &defaultExpiryManager{
         sampleSize: 20,
-        store:      st,
+        context:    context,
     }
 }
 
@@ -30,28 +28,27 @@ func (eas *defaultExpiryManager) PurgeExpiredEntries() {
             break
         }
     }
-    log.Println("purged expired keys. total keys", eas.store.Size())
+    log.Println("purged expired keys. total keys", eas.context.Store.Size())
 }
 
 func (eas *defaultExpiryManager) scanAndRemoveExpired() float32 {
     localSample := eas.sampleSize
     removed := 0
-    keys := eas.store.AllKeys()
+    keys := eas.context.Store.AllKeys()
 
     for _, k := range keys {
         if localSample == 0 {
             break
         }
         localSample--
-        entry := eas.store.Get(k)
+        entry := eas.context.Store.Get(k)
         if entry == nil {
             continue
         }
         if entry.GetExpiration() != -1 && entry.GetExpiration() <= time.Now().UnixMilli() {
-            eas.store.Del(k)
+            eas.context.Store.Del(k)
             removed++
         }
     }
     return float32(removed) / float32(eas.sampleSize)
 }
-

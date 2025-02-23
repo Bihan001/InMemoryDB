@@ -1,28 +1,26 @@
 package server
 
 import (
-	"log"
-	"net"
-	"syscall"
+    "log"
+    "net"
+    "syscall"
 
-	"github.com/Bihan001/MyDB/config"
-	"github.com/Bihan001/MyDB/core"
+    "github.com/Bihan001/MyDB/internal/config"
+    "github.com/Bihan001/MyDB/internal/engine"
 )
 
 type asyncService struct {
-    context *core.Context
-    evaluator core.Evaluator
+    context *engine.Context
 }
 
-func NewAsyncService(ctx *core.Context, evaluator core.Evaluator) *asyncService {
+func NewAsyncService(ctx *engine.Context) *asyncService {
     return &asyncService{
         context: ctx,
-        evaluator: evaluator,
     }
 }
 
 func (srv *asyncService) RunService() error {
-    preRun(srv.context, srv.evaluator)
+    preRun(srv.context, srv.context.Evaluator)
 
     log.Println("starting an asynchronous TCP server on", config.ServerHost, config.ServerPort)
 
@@ -99,7 +97,7 @@ func (srv *asyncService) RunService() error {
             } else {
                 var clientFd int = int(events[i].Fd)
                 buffer := make([]byte, 512)
-                var ops core.OperationList
+                var ops engine.OperationList
                 var reply []byte
 
                 n, err := syscall.Read(clientFd, buffer)
@@ -108,7 +106,7 @@ func (srv *asyncService) RunService() error {
                 }
 
                 if err == nil {
-                    reply, err = srv.evaluator.Evaluate(ops)
+                    reply, err = srv.context.Evaluator.Evaluate(ops)
                 }
 
                 if err == nil {

@@ -1,10 +1,10 @@
 package ioprotocol_test
 
 import (
-	"fmt"
-	"testing"
+    "fmt"
+    "testing"
 
-	ioprotocol "github.com/Bihan001/MyDB/core/io_protocol"
+    "github.com/Bihan001/MyDB/internal/ioprotocol"
 )
 
 func TestSimpleStringDecode(t *testing.T) {

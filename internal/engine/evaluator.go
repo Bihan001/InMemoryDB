@@ -1,4 +1,4 @@
-package core
+package engine
 
 import (
 	"bytes"
@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Bihan001/MyDB/config"
+	"github.com/Bihan001/MyDB/internal/config"
 )
 
 type Evaluator interface {
@@ -15,7 +15,7 @@ type Evaluator interface {
 }
 
 type defaultEvaluator struct {
-    context      *Context
+    context *Context
 }
 
 func GetNewEvaluator(context *Context) Evaluator {

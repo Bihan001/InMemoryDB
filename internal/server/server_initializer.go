@@ -4,15 +4,16 @@ import (
 	"log"
 	"strings"
 
-	"github.com/Bihan001/MyDB/core"
-	ioprotocol "github.com/Bihan001/MyDB/core/io_protocol"
+	"github.com/Bihan001/MyDB/internal/engine"
+	"github.com/Bihan001/MyDB/internal/ioprotocol"
+	"github.com/Bihan001/MyDB/internal/wal"
 )
 
 type ServiceRunner interface {
     RunService() error
 }
 
-func preRun(context *core.Context, evaluator core.Evaluator) {
+func preRun(context *engine.Context, evaluator engine.Evaluator) {
     // Load WAL if any content is present, replay it
     walData := context.WAL.ReadWALFile()
     if len(walData) == 0 {
@@ -25,20 +26,20 @@ func preRun(context *core.Context, evaluator core.Evaluator) {
     _, _ = evaluator.Evaluate(ops)
 }
 
-func parseCommands(buffer []byte, bufferLen int, decoder ioprotocol.Decoder, wal core.WAL) (core.OperationList, error) {
+func parseCommands(buffer []byte, bufferLen int, decoder ioprotocol.Decoder, wal wal.WAL) (engine.OperationList, error) {
     wal.WriteToWAL(buffer)
     parsed, err := decoder.Decode(buffer[:bufferLen])
     if err != nil {
         return nil, err
     }
 
-    var ops core.OperationList
+    var ops engine.OperationList
     for _, val := range parsed {
         tokens, err := toStringArray(val.([]interface{}))
         if err != nil {
             return nil, err
         }
-        ops = append(ops, &core.Operation{
+        ops = append(ops, &engine.Operation{
             Name: strings.ToUpper(tokens[0]),
             Args: tokens[1:],
         })

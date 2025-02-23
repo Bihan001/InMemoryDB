@@ -1,10 +1,10 @@
-package core
+package wal
 
 import (
-	"log"
-	"os"
+    "log"
+    "os"
 
-	"github.com/Bihan001/MyDB/config"
+    "github.com/Bihan001/MyDB/internal/config"
 )
 
 type WAL interface {
@@ -57,4 +57,3 @@ func (fw *fileWAL) indexOfNullTerminator(data []byte) int {
     }
     return len(data)
 }
-

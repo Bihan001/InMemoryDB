@@ -1,8 +1,8 @@
-package core
+package engine
 
 import (
-	"errors"
-	"strconv"
+    "errors"
+    "strconv"
 )
 
 type ObjectEncoder interface {
@@ -48,4 +48,3 @@ var (
     EncodingRaw            uint8 = 0
     EncodingEmbeddedString uint8 = 8
 )
-
