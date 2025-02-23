@@ -43,12 +43,12 @@ func (eas *defaultExpiryManager) scanAndRemoveExpired() float32 {
             break
         }
         localSample--
-        entry := eas.store.Retrieve(k)
+        entry := eas.store.Get(k)
         if entry == nil {
             continue
         }
         if entry.GetExpiration() != -1 && entry.GetExpiration() <= time.Now().UnixMilli() {
-            eas.store.Remove(k)
+            eas.store.Del(k)
             removed++
         }
     }

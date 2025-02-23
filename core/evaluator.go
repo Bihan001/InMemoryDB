@@ -83,7 +83,7 @@ func (d *defaultEvaluator) evaluateGet(args []string) ([]byte, error) {
     if len(args) != 1 {
         return nil, errors.New("(error) ERR wrong number of arguments for 'get' command")
     }
-    val := d.context.Store.Retrieve(args[0])
+    val := d.context.Store.Get(args[0])
     if val == nil {
         return []byte("$-1\r\n"), nil
     }
@@ -120,14 +120,14 @@ func (d *defaultEvaluator) evaluateSet(args []string) ([]byte, error) {
     }
 
     entry := d.context.Store.CreateEntry(value, expireMs, objType, objEncoding)
-    d.context.Store.Store(key, entry)
+    d.context.Store.Set(key, entry)
     return d.context.Encoder.Encode("OK", true)
 }
 
 func (d *defaultEvaluator) evaluateDelete(args []string) ([]byte, error) {
     deletedCount := 0
     for _, k := range args {
-        if d.context.Store.Remove(k) {
+        if d.context.Store.Del(k) {
             deletedCount++
         }
     }
@@ -138,7 +138,7 @@ func (d *defaultEvaluator) evaluateTTL(args []string) ([]byte, error) {
     if len(args) != 1 {
         return nil, errors.New("(error) ERR wrong number of arguments for 'ttl' command")
     }
-    entry := d.context.Store.Retrieve(args[0])
+    entry := d.context.Store.Get(args[0])
     if entry == nil {
         return d.context.Encoder.Encode(int64(-2), false)
     }
@@ -158,7 +158,7 @@ func (d *defaultEvaluator) evaluateExpire(args []string) ([]byte, error) {
     if err != nil {
         return nil, errors.New("(error) ERR value is not an integer or out of range")
     }
-    entry := d.context.Store.Retrieve(key)
+    entry := d.context.Store.Get(key)
     if entry == nil {
         return d.context.Encoder.Encode(0, false)
     }
@@ -171,10 +171,10 @@ func (d *defaultEvaluator) evaluateIncrement(args []string) ([]byte, error) {
         return d.context.Encoder.Encode(errors.New("ERR wrong number of arguments for 'incr' command"), false)
     }
     key := args[0]
-    entry := d.context.Store.Retrieve(key)
+    entry := d.context.Store.Get(key)
     if entry == nil {
         entry = d.context.Store.CreateEntry("0", -1, TypeString, EncodingInt)
-        d.context.Store.Store(key, entry)
+        d.context.Store.Set(key, entry)
     }
     if err := checkTypeMask(entry.GetTypeEncoding(), TypeString); err != nil {
         return d.context.Encoder.Encode(err, false)

@@ -8,9 +8,9 @@ import (
 
 type DataStore interface {
     CreateEntry(content interface{}, expireInMs int64, objType uint8, objEnc uint8) *DataEntry
-    Store(key string, entry *DataEntry)
-    Retrieve(key string) *DataEntry
-    Remove(key string) bool
+    Set(key string, entry *DataEntry)
+    Get(key string) *DataEntry
+    Del(key string) bool
     AllKeys() []string
     Size() int
 }
@@ -65,16 +65,16 @@ func (ms *memoryStore) CreateEntry(content interface{}, expireInMs int64, objTyp
     }
 }
 
-func (ms *memoryStore) Store(key string, entry *DataEntry) {
+func (ms *memoryStore) Set(key string, entry *DataEntry) {
     ms.data[key] = entry
     ms.statsManager.IncrDBStat("keys")
 }
 
-func (ms *memoryStore) Retrieve(key string) *DataEntry {
+func (ms *memoryStore) Get(key string) *DataEntry {
     val := ms.data[key]
     if val != nil {
         if val.expiration != -1 && val.expiration <= time.Now().UnixMilli() {
-            ms.Remove(key)
+            ms.Del(key)
             return nil
         }
         return val
@@ -82,7 +82,7 @@ func (ms *memoryStore) Retrieve(key string) *DataEntry {
     return nil
 }
 
-func (ms *memoryStore) Remove(key string) bool {
+func (ms *memoryStore) Del(key string) bool {
     if _, exists := ms.data[key]; exists {
         delete(ms.data, key)
         ms.statsManager.DecrDBStat("keys")

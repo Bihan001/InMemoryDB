@@ -14,7 +14,7 @@ func (oep *OrderedEvictionPolicy) Evict(st store.DataStore) {
     if len(keys) == 0 {
         return
     }
-    st.Remove(keys[0])
+    st.Del(keys[0])
 }
 
 func (rep *RandomEvictionPolicy) Evict(st store.DataStore) {
@@ -25,7 +25,7 @@ func (rep *RandomEvictionPolicy) Evict(st store.DataStore) {
     toRemove := int64(config.EvictionPercentage * float64(config.KeyCountLimit))
     idx := 0
     for idx < len(keys) && toRemove > 0 {
-        st.Remove(keys[idx])
+        st.Del(keys[idx])
         toRemove--
         idx++
     }
