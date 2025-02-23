@@ -2,7 +2,8 @@ package engine
 
 import (
 	"log"
-	"time"
+
+	"github.com/Bihan001/MyDB/internal/interfaces"
 )
 
 type ExpiryManager interface {
@@ -12,12 +13,14 @@ type ExpiryManager interface {
 type defaultExpiryManager struct {
     sampleSize int
     context    *Context
+    expirableStore interfaces.Expirable
 }
 
 func GetNewExpiryManager(context *Context) ExpiryManager {
     return &defaultExpiryManager{
         sampleSize: 20,
         context:    context,
+        expirableStore: context.Store.(interfaces.Expirable),
     }
 }
 
@@ -45,7 +48,7 @@ func (eas *defaultExpiryManager) scanAndRemoveExpired() float32 {
         if entry == nil {
             continue
         }
-        if entry.GetExpiration() != -1 && entry.GetExpiration() <= time.Now().UnixMilli() {
+        if eas.expirableStore.HasExpired(entry) {
             eas.context.Store.Del(k)
             removed++
         }

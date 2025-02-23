@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Bihan001/MyDB/internal/config"
+	"github.com/Bihan001/MyDB/internal/interfaces"
 )
 
 type Evaluator interface {
@@ -16,11 +17,15 @@ type Evaluator interface {
 
 type defaultEvaluator struct {
     context *Context
+    store  interfaces.DataStore
+    expirableStore interfaces.Expirable
 }
 
 func GetNewEvaluator(context *Context) Evaluator {
     return &defaultEvaluator{
         context: context,
+        store: context.Store,
+        expirableStore: context.Store.(interfaces.Expirable),
     }
 }
 
@@ -95,7 +100,7 @@ func (d *defaultEvaluator) evaluateSet(args []string) ([]byte, error) {
         return nil, errors.New("(error) ERR wrong number of arguments for 'set' command")
     }
     if d.context.Store.Size() >= config.KeyCountLimit {
-        d.context.EvictionManager.Evict(d.context.Store)
+        d.context.EvictionPolicy.Evict()
     }
 
     key, value := args[0], args[1]
@@ -142,10 +147,19 @@ func (d *defaultEvaluator) evaluateTTL(args []string) ([]byte, error) {
     if entry == nil {
         return d.context.Encoder.Encode(int64(-2), false)
     }
-    if entry.GetExpiration() == -1 {
+
+    exp, exists := d.expirableStore.GetExpiryMs(entry)
+
+    if !exists {
         return d.context.Encoder.Encode(int64(-1), false)
     }
-    secondsLeft := (entry.GetExpiration() - time.Now().UnixMilli()) / 1000
+
+    if exp <= uint64(time.Now().UnixMilli()) {
+        return d.context.Encoder.Encode(int64(-2), false)
+    }
+
+    secondsLeft := (exp - (uint64(time.Now().UnixMilli()))) / 1000
+    
     return d.context.Encoder.Encode(secondsLeft, false)
 }
 
@@ -162,7 +176,7 @@ func (d *defaultEvaluator) evaluateExpire(args []string) ([]byte, error) {
     if entry == nil {
         return d.context.Encoder.Encode(0, false)
     }
-    entry.SetExpiration(time.Now().UnixMilli() + expireSec*1000)
+    d.expirableStore.SetExpiry(entry, time.Now().UnixMilli() + expireSec*1000)
     return d.context.Encoder.Encode(1, false)
 }
 
