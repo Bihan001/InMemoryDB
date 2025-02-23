@@ -1,8 +1,8 @@
 package ioprotocol
 
 import (
-    "errors"
-    "fmt"
+	"errors"
+	"fmt"
 )
 
 type respEncoder struct {
@@ -46,7 +46,7 @@ func (rd *respEncoder) Encode(data interface{}, useSimpleString bool) ([]byte, e
             return []byte(fmt.Sprintf("+%s\r\n", val)), nil
         }
         return []byte(fmt.Sprintf("$%d\r\n%s\r\n", len(val), val)), nil
-    case int, int8, int16, int32, int64:
+    case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
         return []byte(fmt.Sprintf(":%d\r\n", val)), nil
     default:
         return []byte("$-1\r\n"), nil

@@ -1,19 +1,19 @@
 package server
 
 import (
-    "log"
-    "net"
-    "syscall"
+	"log"
+	"net"
+	"syscall"
 
-    "github.com/Bihan001/MyDB/internal/config"
-    "github.com/Bihan001/MyDB/internal/engine"
+	"github.com/Bihan001/MyDB/internal/config"
+	"github.com/Bihan001/MyDB/internal/interfaces"
 )
 
 type asyncService struct {
-    context *engine.Context
+    context *interfaces.Context
 }
 
-func NewAsyncService(ctx *engine.Context) *asyncService {
+func NewAsyncService(ctx *interfaces.Context) *asyncService {
     return &asyncService{
         context: ctx,
     }
@@ -97,7 +97,7 @@ func (srv *asyncService) RunService() error {
             } else {
                 var clientFd int = int(events[i].Fd)
                 buffer := make([]byte, 512)
-                var ops engine.OperationList
+                var ops interfaces.OperationList
                 var reply []byte
 
                 n, err := syscall.Read(clientFd, buffer)

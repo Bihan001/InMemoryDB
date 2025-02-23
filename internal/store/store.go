@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/Bihan001/MyDB/internal/interfaces"
-	"github.com/Bihan001/MyDB/internal/stats"
 	"github.com/Bihan001/MyDB/internal/utils"
 )
 
@@ -13,11 +12,11 @@ type OnKeyAccess func(key string)
 type memoryStore struct {
     data         map[string]*interfaces.DataEntry
     expiryMap map[*interfaces.DataEntry]uint64
-    statsManager stats.StatsManager
+    statsManager interfaces.StatsManager
     onKeyAccess OnKeyAccess
 }
 
-func GetNewStore(statsManager stats.StatsManager, onKeyAccess OnKeyAccess) interfaces.DataStore {
+func GetNewStore(statsManager interfaces.StatsManager, onKeyAccess OnKeyAccess) interfaces.DataStore {
     return &memoryStore{
         data: make(map[string]*interfaces.DataEntry),
         expiryMap: make(map[*interfaces.DataEntry]uint64),

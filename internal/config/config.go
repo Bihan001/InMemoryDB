@@ -19,3 +19,10 @@ const (
 const (
     EvictionPoolSize = 5
 )
+
+var (
+    TypeString             uint8 = 0
+    EncodingInt            uint8 = 1
+    EncodingRaw            uint8 = 0
+    EncodingEmbeddedString uint8 = 8
+)

@@ -5,10 +5,6 @@ import (
 	"github.com/Bihan001/MyDB/internal/interfaces"
 )
 
-type EvictionPolicy interface {
-	Evict()
-}
-
 type OrderedEvictionPolicy struct {
 	store interfaces.DataStore
 }
@@ -22,7 +18,7 @@ type LRUEvictionPolicy struct {
 	evictionPool *EvictionPool
 }
 
-func GetNewEvictionPolicy(store interfaces.DataStore, evictionPool *EvictionPool) EvictionPolicy {
+func GetNewEvictionPolicy(store interfaces.DataStore, evictionPool *EvictionPool) interfaces.EvictionPolicy {
 	switch config.EvictionMethod {
 	case config.ORDERED_EVICTION:
 		return &OrderedEvictionPolicy{

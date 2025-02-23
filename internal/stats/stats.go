@@ -1,17 +1,12 @@
 package stats
 
-type StatsManager interface {
-    RecordDBStat(metric string, value int)
-    IncrDBStat(metric string)
-    DecrDBStat(metric string)
-    GetDbStats() [4]map[string]int
-}
+import "github.com/Bihan001/MyDB/internal/interfaces"
 
 type defaultStatsManager struct {
     DatabaseStats [4]map[string]int
 }
 
-func GetNewStatsManager() StatsManager {
+func GetNewStatsManager() interfaces.StatsManager {
     statsManager := &defaultStatsManager{
         DatabaseStats: [4]map[string]int{},
     }

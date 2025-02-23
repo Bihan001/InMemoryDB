@@ -1,4 +1,4 @@
-package engine
+package expiration
 
 import (
 	"log"
@@ -6,17 +6,13 @@ import (
 	"github.com/Bihan001/MyDB/internal/interfaces"
 )
 
-type ExpiryManager interface {
-    PurgeExpiredEntries()
-}
-
 type defaultExpiryManager struct {
     sampleSize int
-    context    *Context
+    context    *interfaces.Context
     expirableStore interfaces.Expirable
 }
 
-func GetNewExpiryManager(context *Context) ExpiryManager {
+func GetNewExpiryManager(context *interfaces.Context) interfaces.ExpiryManager {
     return &defaultExpiryManager{
         sampleSize: 20,
         context:    context,

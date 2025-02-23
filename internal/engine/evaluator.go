@@ -9,19 +9,16 @@ import (
 
 	"github.com/Bihan001/MyDB/internal/config"
 	"github.com/Bihan001/MyDB/internal/interfaces"
+	"github.com/Bihan001/MyDB/internal/utils"
 )
 
-type Evaluator interface {
-    Evaluate(ops OperationList) ([]byte, error)
-}
-
 type defaultEvaluator struct {
-    context *Context
+    context *interfaces.Context
     store  interfaces.DataStore
     expirableStore interfaces.Expirable
 }
 
-func GetNewEvaluator(context *Context) Evaluator {
+func GetNewEvaluator(context *interfaces.Context) interfaces.Evaluator {
     return &defaultEvaluator{
         context: context,
         store: context.Store,
@@ -29,7 +26,7 @@ func GetNewEvaluator(context *Context) Evaluator {
     }
 }
 
-func (d *defaultEvaluator) Evaluate(ops OperationList) ([]byte, error) {
+func (d *defaultEvaluator) Evaluate(ops interfaces.OperationList) ([]byte, error) {
     buff := bytes.NewBuffer(make([]byte, 0))
 
     for _, op := range ops {
@@ -176,7 +173,7 @@ func (d *defaultEvaluator) evaluateExpire(args []string) ([]byte, error) {
     if entry == nil {
         return d.context.Encoder.Encode(0, false)
     }
-    d.expirableStore.SetExpiry(entry, time.Now().UnixMilli() + expireSec*1000)
+    d.expirableStore.SetExpiry(entry, expireSec*1000)
     return d.context.Encoder.Encode(1, false)
 }
 
@@ -187,13 +184,13 @@ func (d *defaultEvaluator) evaluateIncrement(args []string) ([]byte, error) {
     key := args[0]
     entry := d.context.Store.Get(key)
     if entry == nil {
-        entry = d.context.Store.CreateEntry("0", -1, TypeString, EncodingInt)
+        entry = d.context.Store.CreateEntry("0", -1, config.TypeString, config.EncodingInt)
         d.context.Store.Set(key, entry)
     }
-    if err := checkTypeMask(entry.GetTypeEncoding(), TypeString); err != nil {
+    if err := utils.CheckTypeMask(entry.GetTypeEncoding(), config.TypeString); err != nil {
         return d.context.Encoder.Encode(err, false)
     }
-    if err := checkEncMask(entry.GetTypeEncoding(), EncodingInt); err != nil {
+    if err := utils.CheckEncMask(entry.GetTypeEncoding(), config.EncodingInt); err != nil {
         return d.context.Encoder.Encode(err, false)
     }
 
